@@ -34,6 +34,33 @@ def OpenFiles():
     else:
         print("No files selected.")
 
+def MainMenu():
+    userInput = ""
+    while True:
+        try: 
+            userInput = input("Enter number (listed on the side): ")
+
+            if not (userInput in ["1", "2", "stop"]):
+                raise
+            else:
+                break
+        except:
+            print("Invalid Input. Please Try Again.")
+            SortingOptionsDisplay()
+
+def SortingOptionsDisplay():
+    print("")
+    print("---------------------------------------")
+    print("Would you like to sort by: ")
+    print("1) Top Songs")
+    print("2) Top Artists")
+    print("")
+    print("Enter 'stop' to exit.")
+    print("---------------------------------------")
+    print("")
+
 # Main Program
-OpenFiles()
-print(filesUsed)
+#OpenFiles()
+SortingOptionsDisplay()
+MainMenu()
+

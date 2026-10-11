@@ -12,6 +12,7 @@ filesUsed = []
 songs = []
 currentMenu: MenuState
 currentTimePeriod: TimePeriodState
+currentSortBy: SortByState
 
 class SongData:
     songName: str
@@ -32,6 +33,12 @@ class TimePeriodState(Enum):
     SinceLastYear = 6
     Lifetime = 7
     CustomDate = 8
+
+class SortByState(Enum):
+    TrackAlphabetical = 1
+    ArtistAlphabetical = 2
+    MostStreams = 3
+    HighestTimePlayed = 4
 
 # Menu Subroutines
 def OpenFiles():
@@ -132,9 +139,59 @@ def DisplayTimePeriodOptions(currentOption, otherOption):
     print("Enter 'stop' to exit.")
     print("---------------------------------------")
 
+def SortByOptions():
+    if (currentMenu == MenuState.SongsMenu):
+        while True:
+            DisplaySortByOptions()
+            try:
+                print("")
+                userInput = input("Enter number (listed on the side): ")
+                print("")
+                if (userInput.lower() in ["1", "2", "3", "4"]):
+                    return userInput
+                else:
+                    raise
+            except ValueError:
+                print("Invalid Input. Please Try Again.")
+    else:
+        while True:
+            try:
+                DisplaySortByOptions()
+                print("")
+                userInput = input("Enter number (listed on the side): ")
+                print("")
+                if (userInput.lower() in ["1", "2", "3"]):
+                    return int(userInput) + 1 # Since first option removed, need to add 1 to ensure compatibility with Enum
+                else:
+                    raise
+            except ValueError:
+                print("Invalid Input. Please Try Again.")
+
+def DisplaySortByOptions():
+    print("---------------------------------------")
+    print("How do you want the data to be sorted by?")
+    print("")
+
+    if (currentMenu == MenuState.SongsMenu):
+        print("1) Alphabetically (Track Name)")
+        print("2) Alphabetically (Artist Name)")
+        print("3) Most Times Played")
+        print("4) Highest Total Time Played")
+    else:
+        print("1) Alphabetically (Artist Name)")
+        print("2) Most Times Played")
+        print("3) Highest Total Time Played")
+
+    print("---------------------------------------")
+    print("")
+
+# Sorting Algorithms
+
+
 # Main Program
 #OpenFiles()
 currentMenu = MenuState(int(SortingOptions()))
 currentTimePeriod = TimePeriodState(int(TimePeriodOptions()))
+currentSortBy = SortByState(int(SortByOptions()))
 
 

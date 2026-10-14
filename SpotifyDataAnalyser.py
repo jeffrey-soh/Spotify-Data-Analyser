@@ -1,3 +1,8 @@
+# To-do:
+# Add Overview Option (shows number of artists played, total time played, etc)
+# Add Album option
+# Add ability to search
+
 # Libraries
 import tkinter
 from tkinter import filedialog
@@ -10,6 +15,7 @@ import sys
 # Global Variables
 filesUsed = []
 songs = []
+artists = []
 currentMenu: MenuState
 currentTimePeriod: TimePeriodState
 currentSortBy: SortByState
@@ -17,7 +23,12 @@ currentSortBy: SortByState
 class SongData:
     songName: str
     artistName: str
-    msListened: int
+    timePlayed: int
+    numOfStreams: int
+
+class ArtistData:
+    artistName: str
+    timePlayed: int
     numOfStreams: int
 
 class MenuState(Enum):
@@ -45,7 +56,7 @@ def OpenFiles():
     root = tkinter.Tk()
     root.withdraw()
 
-    #Open file picker for multiple JSON files
+    # Open file picker for multiple JSON files
     file_paths = filedialog.askopenfilenames(
         title="Select JSON files",
         initialdir=os.path.expanduser("~/Downloads"),
@@ -186,12 +197,84 @@ def DisplaySortByOptions():
     print("")
 
 # Sorting Algorithms
+def CheckForExistingSong(name):
+    for index in range(len(songs)):
+        if (songs[index].songName == name):
+            return True, index
+    return False, -1
 
+def CheckForExistingArtist(name):
+    for index in range(len(artists)):
+        if (artists[index].artistName == name):
+            return True, index
+    return False, -1
+
+def AnalyseSongs(exists, location, parsedFile, index):
+    if (exists == True):
+        # Update number of streams
+        # Update time played
+        songs[location].timePlayed += parsedFile[index]["ms_played"]
+        songs[location].numOfStreams += 1
+    else:
+        songEntry = SongData()
+        songEntry.songName = parsedFile[index]["master_metadata_track_name"]
+        songEntry.artistName = parsedFile[index]["master_metadata_album_artist_name"]
+        songEntry.timePlayed = parsedFile[index]["ms_played"]
+        songEntry.numOfStreams = 1
+
+        songs.append(songEntry)
+
+def AnalyseArtists(exists, location, parsedFile, index):
+    if (exists == True):
+        # Update number of streams
+        # Update time played
+        artists[location].timePlayed += parsedFile[index]["ms_played"]
+        artists[location].numOfStreams += 1
+    else:
+        artistEntry = SongData()
+        artistEntry.artistName = parsedFile[index]["master_metadata_track_name"]
+        artistEntry.timePlayed = parsedFile[index]["ms_played"]
+        artistEntry.numOfStreams = 1
+        artists.append(artistEntry)
+
+def SortLifetime():
+    if currentMenu == MenuState.SongsMenu:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                for index in range(len(parsedFile)):
+                    trackName = parsedFile[index]["master_metadata_track_name"]
+                    exists, location = CheckForExistingSong(trackName)
+
+                    AnalyseSongs(exists, location, parsedFile, index)
+    else:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                for index in range(len(parsedFile)):
+                    artistName = parsedFile[index]["master_metadata_album_artist_name"]
+                    exists, location = CheckForExistingArtist(artistName)
+
+                    AnalyseArtists(exists, location, parsedFile, index)
 
 # Main Program
-#OpenFiles()
+OpenFiles()
 currentMenu = MenuState(int(SortingOptions()))
 currentTimePeriod = TimePeriodState(int(TimePeriodOptions()))
 currentSortBy = SortByState(int(SortByOptions()))
 
+# Temporary Testing
+if (currentTimePeriod == TimePeriodState.Lifetime):
+    SortLifetime()
 
+for x in range(len(songs)):
+    if songs[x].songName == "Nice For What":
+        index = x
+        break
+
+entry = songs[index]
+print(f"Song Name: {entry.songName}")
+print(f"Artist Name: {entry.artistName}")
+print(f"Time Played: {entry.timePlayed}")
+print(f"Streams: {entry.numOfStreams}")
+print("")

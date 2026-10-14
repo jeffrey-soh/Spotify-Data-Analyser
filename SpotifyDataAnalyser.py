@@ -257,24 +257,84 @@ def SortLifetime():
 
                     AnalyseArtists(exists, location, parsedFile, index)
 
+def SortCurrentMonth():
+    currentMonth = datetime.datetime.now().strftime("%m") # Returns the month as a number between 01-12.
+    currentYear = datetime.datetime.now().strftime("%Y") # Returns the year as a number.
+
+    if currentMenu == MenuState.SongsMenu:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                locations = []
+
+                # Find all of the valid songs where their play date was within the current month.
+                for pointer in range(len(parsedFile)):
+                    songMonth = parsedFile[pointer]["ts"][5:7]
+                    songYear = parsedFile[pointer]["ts"][0:4]
+
+                    if currentMonth == songMonth and currentYear == songYear:
+                        locations.append(pointer)
+
+                for index in range(len(locations)):
+                    trackName = parsedFile[index]["master_metadata_track_name"]
+                    exists, location = CheckForExistingSong(trackName)
+
+                    AnalyseSongs(exists, location, parsedFile, index)
+    else:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                locations = []
+
+                # Find all of the valid songs where their play date was within the current month.
+                for pointer in range(len(parsedFile)):
+                    songMonth = parsedFile[pointer]["ts"][5:7]
+                    songYear = parsedFile[pointer]["ts"][0:4]
+
+                    if currentMonth == songMonth and currentYear == songYear:
+                        locations.append(pointer)
+
+                for index in range(len(locations)):
+                    artistName = parsedFile[index]["master_metadata_album_artist_name"]
+                    exists, location = CheckForExistingArtist(artistName)
+
+                    AnalyseArtists(exists, location, parsedFile, index)
+
+
+
+
+
 # Main Program
 OpenFiles()
 currentMenu = MenuState(int(SortingOptions()))
 currentTimePeriod = TimePeriodState(int(TimePeriodOptions()))
 currentSortBy = SortByState(int(SortByOptions()))
 
-# Temporary Testing
 if (currentTimePeriod == TimePeriodState.Lifetime):
     SortLifetime()
+elif (currentTimePeriod == TimePeriodState.CurrentMonth):
+    SortCurrentMonth()
 
-for x in range(len(songs)):
-    if songs[x].songName == "Nice For What":
-        index = x
-        break
+# Testing Subroutines
+def SearchForSong(name):
+    for x in range(len(songs)):
+        if songs[x].songName == name:
+            index = x
+            break
 
-entry = songs[index]
-print(f"Song Name: {entry.songName}")
-print(f"Artist Name: {entry.artistName}")
-print(f"Time Played: {entry.timePlayed}")
-print(f"Streams: {entry.numOfStreams}")
-print("")
+    entry = songs[index]
+    print(f"Song Name: {entry.songName}")
+    print(f"Artist Name: {entry.artistName}")
+    print(f"Time Played: {entry.timePlayed}")
+    print(f"Streams: {entry.numOfStreams}")
+    print("")
+
+def OutputSongs():
+    for entry in songs:
+        print(f"Song Name: {entry.songName}")
+        print(f"Artist Name: {entry.artistName}")
+        print(f"Time Played: {entry.timePlayed}")
+        print(f"Streams: {entry.numOfStreams}")
+        print("")
+
+OutputSongs()

@@ -275,7 +275,7 @@ def SortCurrentMonth():
                     if currentMonth == songMonth and currentYear == songYear:
                         locations.append(pointer)
 
-                for index in range(len(locations)):
+                for index in locations:
                     trackName = parsedFile[index]["master_metadata_track_name"]
                     exists, location = CheckForExistingSong(trackName)
 
@@ -294,13 +294,68 @@ def SortCurrentMonth():
                     if currentMonth == songMonth and currentYear == songYear:
                         locations.append(pointer)
 
-                for index in range(len(locations)):
+                for index in locations:
                     artistName = parsedFile[index]["master_metadata_album_artist_name"]
                     exists, location = CheckForExistingArtist(artistName)
 
                     AnalyseArtists(exists, location, parsedFile, index)
 
+def SortPreviousMonth():
+    currentMonth = datetime.datetime.now().month # Returns the month as a number between 1-12.
+    currentYear = datetime.datetime.now().strftime("%Y") # Returns the year as a number.
 
+    # Previous Month Formatting
+    # If the previousMonth (currentMonth - 1) goes below 1:
+    #   subtract 1 from the year
+    #   add 12 to previousMonth
+
+    if (currentMonth - 1) < 1:
+        currentYear -= 1
+        previousMonth = currentMonth + 11
+    else:
+        previousMonth = currentMonth - 1
+
+    if (previousMonth in range(0, 10)):
+        previousMonth = f"0{previousMonth}"
+
+    if currentMenu == MenuState.SongsMenu:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                locations = []
+
+                # Find all of the valid songs where their play date was within the current month.
+                for pointer in range(len(parsedFile)):
+                    songMonth = parsedFile[pointer]["ts"][5:7]
+                    songYear = parsedFile[pointer]["ts"][0:4]
+
+                    if previousMonth == songMonth and currentYear == songYear:
+                        locations.append(pointer)
+
+                for index in locations:
+                    trackName = parsedFile[index]["master_metadata_track_name"]
+                    exists, location = CheckForExistingSong(trackName)
+
+                    AnalyseSongs(exists, location, parsedFile, index)
+    else:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                locations = []
+
+                # Find all of the valid songs where their play date was within the current month.
+                for pointer in range(len(parsedFile)):
+                    songMonth = parsedFile[pointer]["ts"][5:7]
+                    songYear = parsedFile[pointer]["ts"][0:4]
+
+                    if currentMonth == songMonth and currentYear == songYear:
+                        locations.append(pointer)
+
+                for index in locations:
+                    artistName = parsedFile[index]["master_metadata_album_artist_name"]
+                    exists, location = CheckForExistingArtist(artistName)
+
+                    AnalyseArtists(exists, location, parsedFile, index)
 
 
 
@@ -314,9 +369,12 @@ if (currentTimePeriod == TimePeriodState.Lifetime):
     SortLifetime()
 elif (currentTimePeriod == TimePeriodState.CurrentMonth):
     SortCurrentMonth()
+elif (currentTimePeriod == TimePeriodState.PreviousMonth):
+    SortPreviousMonth()
 
 # Testing Subroutines
 def SearchForSong(name):
+    global songs
     for x in range(len(songs)):
         if songs[x].songName == name:
             index = x
@@ -330,6 +388,7 @@ def SearchForSong(name):
     print("")
 
 def OutputSongs():
+    global songs
     for entry in songs:
         print(f"Song Name: {entry.songName}")
         print(f"Artist Name: {entry.artistName}")
@@ -337,4 +396,14 @@ def OutputSongs():
         print(f"Streams: {entry.numOfStreams}")
         print("")
 
+def OutputSelectedOptions():
+    global currentMenu
+    global currentTimePeriod
+    global currentSortBy
+
+    print(currentMenu)
+    print(currentTimePeriod)
+    print(currentSortBy)
+
 OutputSongs()
+# OutputSelectedOptions()

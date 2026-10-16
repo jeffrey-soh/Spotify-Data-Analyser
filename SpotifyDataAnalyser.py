@@ -357,7 +357,51 @@ def SortPreviousMonth():
 
                     AnalyseArtists(exists, location, parsedFile, index)
 
+def SortLastDays(numberOfDays):
+    currentMonth = datetime.datetime.now().month # Returns the month as a number between 1-12.
+    currentYear = datetime.datetime.now().strftime("%Y") # Returns the year as a number.
 
+    currentDate = datetime.date.today()
+    endDate = currentDate - datetime.timedelta(days = numberOfDays)
+
+    if currentMenu == MenuState.SongsMenu:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                locations = []
+
+                # Find all of the valid songs where their play date was within the current month.
+                for pointer in range(len(parsedFile)):
+                    songDate = parsedFile[pointer]["ts"][0:10]
+                    songDate = datetime.date.strptime(songDate, "%Y-%m-%d")
+
+                    if (endDate <= songDate <= currentDate):
+                        locations.append(pointer)
+
+                for index in locations:
+                    trackName = parsedFile[index]["master_metadata_track_name"]
+                    exists, location = CheckForExistingSong(trackName)
+
+                    AnalyseSongs(exists, location, parsedFile, index)
+    else:
+        for fileName in filesUsed:
+            with open(fileName, "r") as file:
+                parsedFile = json.load(file)
+                locations = []
+
+                # Find all of the valid songs where their play date was within the current month.
+                for pointer in range(len(parsedFile)):
+                    songMonth = parsedFile[pointer]["ts"][5:7]
+                    songYear = parsedFile[pointer]["ts"][0:4]
+
+                    if currentMonth == songMonth and currentYear == songYear:
+                        locations.append(pointer)
+
+                for index in locations:
+                    artistName = parsedFile[index]["master_metadata_album_artist_name"]
+                    exists, location = CheckForExistingArtist(artistName)
+
+                    AnalyseArtists(exists, location, parsedFile, index)
 
 # Main Program
 OpenFiles()
@@ -365,12 +409,30 @@ currentMenu = MenuState(int(SortingOptions()))
 currentTimePeriod = TimePeriodState(int(TimePeriodOptions()))
 currentSortBy = SortByState(int(SortByOptions()))
 
-if (currentTimePeriod == TimePeriodState.Lifetime):
-    SortLifetime()
-elif (currentTimePeriod == TimePeriodState.CurrentMonth):
+# class TimePeriodState(Enum):
+#     CurrentMonth = 1
+#     PreviousMonth = 2
+#     Last30Days = 3
+#     Last90Days = 4
+#     Last180Days = 5
+#     SinceLastYear = 6
+#     Lifetime = 7
+#     CustomDate = 8
+
+
+if (currentTimePeriod == TimePeriodState.CurrentMonth):
     SortCurrentMonth()
 elif (currentTimePeriod == TimePeriodState.PreviousMonth):
     SortPreviousMonth()
+elif (currentTimePeriod == TimePeriodState.Last30Days):
+    SortLastDays(30)
+elif (currentTimePeriod == TimePeriodState.Last90Days):
+    SortLastDays(90)
+elif (currentTimePeriod == TimePeriodState.Last180Days):
+    SortLastDays(180)
+elif (currentTimePeriod == TimePeriodState.Lifetime):
+    SortLifetime()
+
 
 # Testing Subroutines
 def SearchForSong(name):
